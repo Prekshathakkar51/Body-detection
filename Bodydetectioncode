@@ -1,0 +1,58 @@
+import cv2 as cv
+from cv2 import CAP_PROP_FRAME_HEIGHT
+from cv2 import CAP_PROP_FRAME_WIDTH
+import mediapipe as mp
+
+mp_drawing=mp.solutions.drawing_utils
+mp_holistic= mp.solutions.holistic
+
+drawspec_f= mp_drawing.DrawingSpec(color=(255,255,0),thickness=1,circle_radius=1) #style FACE
+drawspec_h= mp_drawing.DrawingSpec(color=(80,21,80),thickness=3,circle_radius=2) #style HAND
+drawspec_p= mp_drawing.DrawingSpec(color=(82,23,162),thickness=4,circle_radius=1) #style POSE
+
+cap=cv.VideoCapture(0,cv.CAP_DSHOW)
+# resolution
+cap.set(cv.CAP_PROP_FRAME_HEIGHT,3840)
+cap.set(cv.CAP_PROP_FRAME_WIDTH,2160)
+
+# intiate holistic model
+with mp_holistic.Holistic(min_detection_confidence=0.5, min_tracking_confidence=0.5) as holistic:
+
+ while cap.isOpened():   
+    #  Resolution
+   print(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
+   print(cap.get(cv.CAP_PROP_FRAME_WIDTH))
+
+   ret,frame=cap.read()
+  #Recolor feed
+   image = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
+   #make detection
+   results = holistic.process(image)
+#    print(results.face_landmarks)
+   #recolor image back to BGR for rendering
+   image = cv.cvtColor(image,cv.COLOR_RGB2BGR)
+   # Draw land marks
+
+     # FACE 
+   mp_drawing.draw_landmarks(image,results.face_landmarks,mp_holistic.FACEMESH_TESSELATION,drawspec_f,drawspec_f)
+#    mp_drawing.draw_landmarks(image,results.face_landmarks,mp_holistic.FACEMESH_CONTOURS,drawspec,drawspec)
+   
+   # Right Hand
+   mp_drawing.draw_landmarks(image,results.right_hand_landmarks,mp_holistic.HAND_CONNECTIONS,drawspec_h,drawspec_h)
+#    mp_drawing.draw_landmarks(image,results.right_hand_landmarks,mp_holistic.HAND_CONTOURS,drawspec,drawspec)
+   
+   #left hand 
+   mp_drawing.draw_landmarks(image,results.left_hand_landmarks,mp_holistic.HAND_CONNECTIONS,drawspec_h,drawspec_h)
+   
+   
+   #pose detection
+   mp_drawing.draw_landmarks(image,results.pose_landmarks,mp_holistic.POSE_CONNECTIONS,drawspec_p,drawspec_p)
+   
+   cv.imshow('CHEHERA',image)
+   
+   if cv.waitKey(1) & 0xff==27:
+     break
+
+
+cap.release()
+cv.destroyAllWindows()
